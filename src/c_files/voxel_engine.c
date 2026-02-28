@@ -7,6 +7,7 @@
 #include <stb/stb_ds.h>
 #include <linmath.h>
 #include <khash.h>
+#include <open-simplex-noise.h>
 #include <stdlib.h>
 #include "window.h"
 #include "opengl_help_functions.h"
@@ -125,6 +126,8 @@ GLuint shaderProgram;
 GLuint texture1;
 
 Player player;
+
+struct osn_context *osn_ctx;
 
 KHASH_MAP_INIT_INT64(chunk_map, Chunk*)
 khash_t(chunk_map) *chunkMap;
@@ -286,7 +289,10 @@ void generateChunk(int chunkX, int chunkZ)
         {
             for(int z = 0; z < CHUNK_SIZE; z++)
             {
-                int height = CHUNK_HEIGHT - (sin((x + chunkX * CHUNK_SIZE) * 0.1f) * 0.5f + 0.5f) * 5;
+                //int height = CHUNK_HEIGHT - (sin((x + chunkX * CHUNK_SIZE) * 0.1f) * 0.5f + 0.5f) * 5;
+
+                float multiplyer = 0.01f;
+                int height = CHUNK_HEIGHT * (open_simplex_noise2(osn_ctx, (x + chunkX * CHUNK_SIZE) * multiplyer, (z + chunkZ * CHUNK_SIZE) * multiplyer) * 0.5f + 0.5f);
 
                 for(int y = 0; y < CHUNK_HEIGHT; y++)
                 {
@@ -487,16 +493,6 @@ bool initEngine()
 
     chunkMap = kh_init(chunk_map);
 
-    // for(int chunkX = -10; chunkX < 10; chunkX++)
-    // {
-    //     for(int chunkZ = -10; chunkZ < 10; chunkZ++)
-    //     {
-    //         generateChunk(chunkX, chunkZ);
-    //         generateChunkDrawData(chunkX, chunkZ);
-    //         compileChunkDrawData(chunkX, chunkZ);
-    //     }
-    // }
-
     if(!createShader(&shaderProgram, "src/shader_files/vert.glsl", "src/shader_files/frag.glsl"))
     {
         printf("failed to create shader\n");
@@ -517,6 +513,8 @@ bool initEngine()
 
     initPlayer(&player, (vec3){0.0f, 100.0f, 0.0f}, 90.0f, 0.0f, 90.0f);
     calculatePlayerData(&player);
+
+    open_simplex_noise(283458, &osn_ctx);
 
     return true;
 };
@@ -540,6 +538,8 @@ bool engineExit()
     }
 
     kh_destroy(chunk_map, chunkMap);
+
+    open_simplex_noise_free(osn_ctx);
 
     return true;
 };
