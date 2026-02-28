@@ -129,6 +129,10 @@ Player player;
 KHASH_MAP_INIT_INT64(chunk_map, Chunk*)
 khash_t(chunk_map) *chunkMap;
 
+void generateChunk(int chunkX, int chunkZ);
+void generateChunkDrawData(int chunkX, int chunkZ);
+void compileChunkDrawData(int chunkX, int chunkZ);
+
 void engineUpdate()
 {
     playerUpdate(&player);
@@ -153,12 +157,81 @@ void engineDraw()
     glUniformMatrix4fv(uniLoc(shaderProgram, "perspe"), 1, GL_FALSE, perspe[0]);
     glUniformMatrix4fv(uniLoc(shaderProgram, "trans"), 1, GL_FALSE, trans[0]);
 
-    int currentChunkX = floor(player.camera.pos[0] / (float)CHUNK_SIZE);
-    int currentChunkZ = floor(player.camera.pos[2] / (float)CHUNK_SIZE);
+    float currentChunkX = player.camera.pos[0] / (float)CHUNK_SIZE;
+    float currentChunkZ = player.camera.pos[2] / (float)CHUNK_SIZE;
 
-    for(int x = currentChunkX - 2; x <= currentChunkX + 2; x++)
+    int startChunkX, startChunkZ;
+    int endChunkX, endChunkZ;
+
+    if(DRAW_AREA_IN_CHUNKS % 2 != 0)
     {
-        for(int z = currentChunkZ - 2; z <= currentChunkZ + 2; z++)
+        startChunkX = (int)floor(currentChunkX) - (DRAW_AREA_IN_CHUNKS - 1) / 2;
+        startChunkZ = (int)floor(currentChunkZ) - (DRAW_AREA_IN_CHUNKS - 1) / 2;
+
+        endChunkX = (int)floor(currentChunkX) + (DRAW_AREA_IN_CHUNKS - 1) / 2;
+        endChunkZ = (int)floor(currentChunkZ) + (DRAW_AREA_IN_CHUNKS - 1) / 2;
+    }
+    else
+    {
+        startChunkX = (int)floor(currentChunkX) - (DRAW_AREA_IN_CHUNKS - 2) / 2;
+        startChunkZ = (int)floor(currentChunkZ) - (DRAW_AREA_IN_CHUNKS - 2) / 2;
+
+        endChunkX = (int)floor(currentChunkX) + (DRAW_AREA_IN_CHUNKS - 2) / 2;
+        endChunkZ = (int)floor(currentChunkZ) + (DRAW_AREA_IN_CHUNKS - 2) / 2;
+
+        float offsetInChunkX, offsetInChunkZ;
+
+        if(currentChunkX >= 0)
+        {
+            offsetInChunkX = currentChunkX - floor(currentChunkX);
+            offsetInChunkZ = currentChunkZ - floor(currentChunkZ);
+        }
+        else
+        {
+            offsetInChunkX = floor(currentChunkX) * -1 - currentChunkX * -1;
+            offsetInChunkZ = floor(currentChunkZ) * -1 - currentChunkZ * -1;
+        }
+
+        if(offsetInChunkX < 0.5f)
+        {
+            startChunkX -= 1;
+        }
+        else
+        {
+            endChunkX += 1;
+        }
+
+        if(offsetInChunkZ < 0.5f)
+        {
+            startChunkZ -= 1;
+        }
+        else
+        {
+            endChunkZ += 1;
+        }
+    }
+
+    for(int x = startChunkX - 1; x <= endChunkX + 1; x++)
+    {
+        for(int z = startChunkZ - 1; z <= endChunkZ + 1; z++)
+        {
+            uint64_t key;
+            vec2ToHashKey(x, z, &key);
+
+            khint_t foundChunk = kh_get(chunk_map, chunkMap, key);
+
+            if(foundChunk == kh_end(chunkMap))
+            {
+                generateChunk(x, z);
+                generateChunkDrawData(x, z);
+                compileChunkDrawData(x, z);
+            }
+        }
+    }
+
+    for(int x = startChunkX; x <= endChunkX; x++)
+    {
+        for(int z = startChunkZ; z <= endChunkZ; z++)
         {
             uint64_t key;
             vec2ToHashKey(x, z, &key);
@@ -213,7 +286,7 @@ void generateChunk(int chunkX, int chunkZ)
         {
             for(int z = 0; z < CHUNK_SIZE; z++)
             {
-                int height = CHUNK_HEIGHT - (sin((x + chunkX * CHUNK_SIZE) * 0.1f) * 0.5f + 0.5f) * 40;
+                int height = CHUNK_HEIGHT - (sin((x + chunkX * CHUNK_SIZE) * 0.1f) * 0.5f + 0.5f) * 5;
 
                 for(int y = 0; y < CHUNK_HEIGHT; y++)
                 {
@@ -414,15 +487,15 @@ bool initEngine()
 
     chunkMap = kh_init(chunk_map);
 
-    for(int chunkX = -10; chunkX < 10; chunkX++)
-    {
-        for(int chunkZ = -10; chunkZ < 10; chunkZ++)
-        {
-            generateChunk(chunkX, chunkZ);
-            generateChunkDrawData(chunkX, chunkZ);
-            compileChunkDrawData(chunkX, chunkZ);
-        }
-    }
+    // for(int chunkX = -10; chunkX < 10; chunkX++)
+    // {
+    //     for(int chunkZ = -10; chunkZ < 10; chunkZ++)
+    //     {
+    //         generateChunk(chunkX, chunkZ);
+    //         generateChunkDrawData(chunkX, chunkZ);
+    //         compileChunkDrawData(chunkX, chunkZ);
+    //     }
+    // }
 
     if(!createShader(&shaderProgram, "src/shader_files/vert.glsl", "src/shader_files/frag.glsl"))
     {
