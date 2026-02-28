@@ -1,0 +1,30 @@
+#ifndef SETTINGS_H
+#define SETTINGS_H
+
+//window opengl stuff
+#define START_WINDOW_WIDTH 800
+#define START_WINDOW_HEIGHT 800
+#define OPENGL_VERSION_MAJOR 4
+#define OPENGL_VERSION_MINOR 6
+#define WINDOW_TITLE "Minecraft"
+#define UPS 200
+#define FPS 60
+
+//player stuff
+#define MOUSE_INPUT_SENSITIVITY 0.1f
+#define PLAYER_SPEED 0.1f
+
+//game stuff
+#define CHUNK_SIZE 16
+#define CHUNK_HEIGHT 128
+#define CHUNK_AREA (CHUNK_SIZE * CHUNK_SIZE)
+#define CHUNK_VOLUME (CHUNK_SIZE * CHUNK_HEIGHT * CHUNK_SIZE)
+#define BLOCK_DATA_STRIDE 9
+#define BLOCK_SIDE_DATA (6 * BLOCK_DATA_STRIDE)
+#define BLOCK_SIDES 6
+#define BLOCKS 4
+#define TEXTURES_IN_ATLAS 5
+#define TEXTURES_IN_ATLAS_WIDTH 3
+#define TEXTURES_IN_ATLAS_HEIGHT 2
+
+#endif
