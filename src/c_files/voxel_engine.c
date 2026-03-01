@@ -119,6 +119,7 @@ typedef struct Chunk
     uint8_t chunkData[CHUNK_VOLUME];
     float* drawData;
     GLuint VBO, VAO;
+    bool generatedDrawData;
     unsigned int vertices;
 } Chunk;
 
@@ -226,8 +227,6 @@ void engineDraw()
             if(foundChunk == kh_end(chunkMap))
             {
                 generateChunk(x, z);
-                generateChunkDrawData(x, z);
-                compileChunkDrawData(x, z);
             }
         }
     }
@@ -245,8 +244,14 @@ void engineDraw()
             {
                 Chunk* chunk = kh_value(chunkMap, foundChunk);
 
-                glBindVertexArray(chunk->VAO);
+                if(!chunk->generatedDrawData)
+                {
+                    generateChunkDrawData(x, z);
+                    compileChunkDrawData(x, z);
+                }
 
+
+                glBindVertexArray(chunk->VAO);
                 glDrawArrays(GL_TRIANGLES, 0, chunk->vertices);
             }
         }
@@ -282,6 +287,7 @@ void generateChunk(int chunkX, int chunkZ)
         Chunk* chunk = malloc(sizeof(Chunk));
         chunk->pos[0] = chunkX;
         chunk->pos[1] = chunkZ;
+        chunk->generatedDrawData = false;
 
         kh_value(chunkMap, slot) = chunk;
 
@@ -289,8 +295,6 @@ void generateChunk(int chunkX, int chunkZ)
         {
             for(int z = 0; z < CHUNK_SIZE; z++)
             {
-                //int height = CHUNK_HEIGHT - (sin((x + chunkX * CHUNK_SIZE) * 0.1f) * 0.5f + 0.5f) * 5;
-
                 float multiplyer = 0.01f;
                 int height = CHUNK_HEIGHT * (open_simplex_noise2(osn_ctx, (x + chunkX * CHUNK_SIZE) * multiplyer, (z + chunkZ * CHUNK_SIZE) * multiplyer) * 0.5f + 0.5f);
 
@@ -329,6 +333,22 @@ void generateChunkDrawData(int chunkX, int chunkZ)
     khint_t foundChunk = kh_get(chunk_map, chunkMap, key);
     Chunk* chunk = kh_value(chunkMap, foundChunk);
 
+    vec2ToHashKey(chunkX - 1, chunkZ, &key);
+    foundChunk = kh_get(chunk_map, chunkMap, key);
+    Chunk* westChunk = kh_value(chunkMap, foundChunk);
+
+    vec2ToHashKey(chunkX + 1, chunkZ, &key);
+    foundChunk = kh_get(chunk_map, chunkMap, key);
+    Chunk* eastChunk = kh_value(chunkMap, foundChunk);
+
+    vec2ToHashKey(chunkX, chunkZ + 1, &key);
+    foundChunk = kh_get(chunk_map, chunkMap, key);
+    Chunk* southChunk = kh_value(chunkMap, foundChunk);
+
+    vec2ToHashKey(chunkX, chunkZ - 1, &key);
+    foundChunk = kh_get(chunk_map, chunkMap, key);
+    Chunk* northChunk = kh_value(chunkMap, foundChunk);
+
     chunk->drawData = NULL;
     for(int i = 0; i < CHUNK_VOLUME; i++)
     {
@@ -348,7 +368,15 @@ void generateChunkDrawData(int chunkX, int chunkZ)
             //WEST
             if(tempPos[0] - 1 < 0)
             {
-                addSide(chunk, WEST_SIDE, blockPos, i);
+                tempPos[0] = CHUNK_SIZE - 1;
+                posToIndex(tempPos, &tempIndex);
+
+                if(westChunk->chunkData[tempIndex] == AIR_BLOCK)
+                {
+                    addSide(chunk, WEST_SIDE, blockPos, i);
+                }
+
+                tempPos[0] = 0.0f;
             }
             else
             {
@@ -366,7 +394,15 @@ void generateChunkDrawData(int chunkX, int chunkZ)
             //EAST
             if(tempPos[0] + 1 >= CHUNK_SIZE)
             {
-                addSide(chunk, EAST_SIDE, blockPos, i);
+                tempPos[0] = 0.0f;
+                posToIndex(tempPos, &tempIndex);
+
+                if(eastChunk->chunkData[tempIndex] == AIR_BLOCK)
+                {
+                    addSide(chunk, EAST_SIDE, blockPos, i);
+                }
+
+                tempPos[0] = CHUNK_SIZE - 1;
             }
             else
             {
@@ -384,7 +420,15 @@ void generateChunkDrawData(int chunkX, int chunkZ)
             //SOUTH
             if(tempPos[2] + 1 >= CHUNK_SIZE)
             {
-                addSide(chunk, SOUTH_SIDE, blockPos, i);
+                tempPos[2] = 0.0f;
+                posToIndex(tempPos, &tempIndex);
+
+                if(southChunk->chunkData[tempIndex] == AIR_BLOCK)
+                {
+                    addSide(chunk, SOUTH_SIDE, blockPos, i);
+                }
+
+                tempPos[2] = CHUNK_SIZE - 1;
             }
             else
             {
@@ -402,7 +446,15 @@ void generateChunkDrawData(int chunkX, int chunkZ)
             //NORTH
             if(tempPos[2] - 1 < 0)
             {
-                addSide(chunk, NORTH_SIDE, blockPos, i);
+                tempPos[2] = CHUNK_SIZE - 1;
+                posToIndex(tempPos, &tempIndex);
+
+                if(northChunk->chunkData[tempIndex] == AIR_BLOCK)
+                {
+                    addSide(chunk, NORTH_SIDE, blockPos, i);
+                }
+
+                tempPos[2] = 0.0f;
             }
             else
             {
@@ -456,6 +508,7 @@ void generateChunkDrawData(int chunkX, int chunkZ)
     }
 
     chunk->vertices = arrlen(chunk->drawData) / 6;
+    chunk->generatedDrawData = true;
 }
 
 void compileChunkDrawData(int chunkX, int chunkZ)
