@@ -8,21 +8,6 @@
 #include "window.h"
 #include "voxel_engine.h"
 
-
-/*
-TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-fix monstrocities in voxelEngine.c, especially textures spagetti in add side
-realistic movement, i mean if i press w and a, i should be the same speeed as i would press w, not times sqrt(2)
-
-
-
-
-
-
-
-
-*/
-
 const long timePerUpdate = 1000000000 / UPS;
 const long timePerFrame = 1000000000 / FPS;
 
