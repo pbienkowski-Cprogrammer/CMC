@@ -1,174 +1,103 @@
 #include "chunk.h"
 
 #include "settings.h"
-#include <linmath.h>
-#include <stb/stb_ds.h>
+#include "game_data.h"
 #include "math_help_functions.h"
 #include <open-simplex-noise.h>
+#include <linmath.h>
+#include <stb/stb_ds.h>
 
 struct osn_context *osn_ctx;
-
-khash_t(chunk_map) *chunkMap;
-
-float blockData[BLOCK_SIDES * BLOCK_SIDE_DATA] = {
-    //WEST
-    //position		 normals			texCoords	sideIndex
-    0.0f, 1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0,
-    0.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0,
-    0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0,
-    0.0f, 1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0,
-    0.0f, 1.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0,
-    0.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0,
-
-    //SOUTH
-    0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1,
-    1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1,
-    0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1,
-    0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1,
-    1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1,
-    1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1,
-
-    //EAST
-    1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 2,
-    1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 2,
-    1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 2,
-    1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 2,
-    1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 2,
-    1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 2,
-
-    //NORTH
-    1.0f, 1.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 3,
-    0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 3,
-    1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 3,
-    1.0f, 1.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 3,
-    0.0f, 1.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f, 3,
-    0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 3,
-
-    //TOP
-    1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f,	0.0f, 1.0f, 4,
-    0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,	1.0f, 0.0f, 4,
-    1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,	0.0f, 0.0f, 4,
-    1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f,	0.0f, 1.0f, 4,
-    0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f,	1.0f, 1.0f, 4,
-    0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,	1.0f, 0.0f, 4,
-
-    //BOTTOM
-    1.0f, 0.0f, 1.0f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f, 5,
-    1.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 5,
-    0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 5,
-    1.0f, 0.0f, 1.0f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f, 5,
-    0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 5,
-    0.0f, 0.0f, 1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 5,
-};
-
-//indeces/positions on texture atlas
-vec2 texPosis[TEXTURES_IN_ATLAS] = {
-    { 0, 0 }, //FLOWER_GRASS_TOP_TEXTURE
-    { 1, 0 }, //GRASS_SIDE_TEXTURE
-    { 2, 0 }, //DIRT_TEXTURE
-    { 0, 1 }, //STONE_TEXTURE
-    { 1, 1 }, //GRASS_TOP_TEXTURE
-};
-
-//what texture on what block side
-unsigned int blockSidesTextures[BLOCKS][6] = {
-    { DIRT_TEXTURE, DIRT_TEXTURE, DIRT_TEXTURE, DIRT_TEXTURE, DIRT_TEXTURE, DIRT_TEXTURE }, //dirt_block
-    { GRASS_SIDE_TEXTURE, GRASS_SIDE_TEXTURE, GRASS_SIDE_TEXTURE, GRASS_SIDE_TEXTURE, FLOWER_GRASS_TOP_TEXTURE, DIRT_TEXTURE }, //flower_grass_block
-    { STONE_TEXTURE, STONE_TEXTURE, STONE_TEXTURE, STONE_TEXTURE, STONE_TEXTURE, STONE_TEXTURE }, //stone_block
-    { GRASS_SIDE_TEXTURE, GRASS_SIDE_TEXTURE, GRASS_SIDE_TEXTURE, GRASS_SIDE_TEXTURE, GRASS_TOP_TEXTURE, DIRT_TEXTURE }, //grass_block
-};
 
 void addSide(Chunk* chunk, Sides side, float* blockPos, int index)
 {
     for(int i = 0; i < 6; i++)
     {
-        arrpush(chunk->drawData, blockData[(side * 6 + i) * 9 + 0] + blockPos[0] + chunk->pos[0] * CHUNK_SIZE);
-        arrpush(chunk->drawData, blockData[(side * 6 + i) * 9 + 1] + blockPos[1]);
-        arrpush(chunk->drawData, blockData[(side * 6 + i) * 9 + 2] + blockPos[2] + chunk->pos[1] * CHUNK_SIZE);
-        arrpush(chunk->drawData, blockData[(side * 6 + i) * 9 + 3]);
-        arrpush(chunk->drawData, blockData[(side * 6 + i) * 9 + 4]);
-        arrpush(chunk->drawData, blockData[(side * 6 + i) * 9 + 5]);
-        arrpush(chunk->drawData, (blockData[(side * 6 + i) * 9 + 6] + texPosis[blockSidesTextures[chunk->chunkData[index] - 1][side]][0]) / TEXTURES_IN_ATLAS_WIDTH - (blockData[(side * 6 + i) * 9 + 6] == 0.0f ? -0.0001f : 0.0001f));
-        arrpush(chunk->drawData, (blockData[(side * 6 + i) * 9 + 7] + ((TEXTURES_IN_ATLAS_HEIGHT - 1) - texPosis[blockSidesTextures[chunk->chunkData[index] - 1][side]][1])) / TEXTURES_IN_ATLAS_HEIGHT - (blockData[(side * 6 + i) * 9 + 7] == 0.0f ? -0.0001f : 0.0001f));
-        arrpush(chunk->drawData, blockData[(side * 6 + i) * 9 + 8]);
-    }
-}
+        int currentStride = (side * 6 + i) * BLOCK_DATA_STRIDE;
 
-void generateChunk(int chunkX, int chunkZ)
-{
-    uint64_t key;
-    vec2ToHashKey(chunkX, chunkZ, &key);
+        //vertex pos
+        arrpush(chunk->drawData, blockData[currentStride + 0] + chunk->pos[0] * CHUNK_SIZE + blockPos[0]);
+        arrpush(chunk->drawData, blockData[currentStride + 1] + blockPos[1]);
+        arrpush(chunk->drawData, blockData[currentStride + 2] + chunk->pos[1] * CHUNK_SIZE + blockPos[2]);
 
-    int isNew;
-    khint_t slot = kh_put(chunk_map, chunkMap, key, &isNew);
+        //normal
+        arrpush(chunk->drawData, blockData[currentStride + 3]);
+        arrpush(chunk->drawData, blockData[currentStride + 4]);
+        arrpush(chunk->drawData, blockData[currentStride + 5]);
 
-    if(isNew)
-    {
-        Chunk* chunk = malloc(sizeof(Chunk));
-        chunk->pos[0] = chunkX;
-        chunk->pos[1] = chunkZ;
-        chunk->generatedDrawData = false;
+        //tex coords
+        int blockIndex = chunk->chunkData[index] - 1;
+        int textureIndex = blockSidesTextures[blockIndex][side];
 
-        kh_value(chunkMap, slot) = chunk;
+        int texturePos = blockData[currentStride + 6] + texPosis[textureIndex][0];
+        float normalizedTexturePos = (float)texturePos / (float)TEXTURES_IN_ATLAS_WIDTH;
 
-        for(int x = 0; x < CHUNK_SIZE; x++)
+        float textureCorrection = 0.0001f;
+
+        if(blockData[currentStride + 6] > 0.0f)
         {
-            for(int z = 0; z < CHUNK_SIZE; z++)
+            textureCorrection *= -1.0f;
+        }
+
+        arrpush(chunk->drawData, normalizedTexturePos + textureCorrection);
+
+        // texturePos = blockData[currentStride + 7] + texPosis[textureIndex][1];
+        // normalizedTexturePos = (float)texturePos / (float)TEXTURES_IN_ATLAS_HEIGHT;
+        //
+        // textureCorrection = 0.0001f;
+        //
+        // if(blockData[currentStride + 7] > 0.0f)
+        // {
+        //     textureCorrection *= -1.0f;
+        // }
+        //
+        // arrpush(chunk->drawData, normalizedTexturePos + textureCorrection);
+
+        float yTexCoord = (blockData[currentStride + 7] + ((TEXTURES_IN_ATLAS_HEIGHT - 1) - texPosis[blockSidesTextures[chunk->chunkData[index] - 1][side]][1])) / TEXTURES_IN_ATLAS_HEIGHT - (blockData[(side * 6 + i) * 9 + 7] == 0.0f ? -0.0001f : 0.0001f);
+        arrpush(chunk->drawData, yTexCoord);
+
+        //face side index
+        arrpush(chunk->drawData, blockData[currentStride + 8]);
+    }
+};
+
+void generateChunk(Chunk* chunk)
+{
+    for(int x = 0; x < CHUNK_SIZE; x++)
+    {
+        for(int z = 0; z < CHUNK_SIZE; z++)
+        {
+            float multiplyer = 0.01f;
+            int height = CHUNK_HEIGHT * (open_simplex_noise2(osn_ctx, (x + chunk->pos[0] * CHUNK_SIZE) * multiplyer, (z + chunk->pos[1] * CHUNK_SIZE) * multiplyer) * 0.5f + 0.5f);
+
+            for(int y = 0; y < CHUNK_HEIGHT; y++)
             {
-                float multiplyer = 0.01f;
-                int height = CHUNK_HEIGHT * (open_simplex_noise2(osn_ctx, (x + chunkX * CHUNK_SIZE) * multiplyer, (z + chunkZ * CHUNK_SIZE) * multiplyer) * 0.5f + 0.5f);
+                int index;
+                posToIndex((vec3){x, y, z}, &index);
 
-                for(int y = 0; y < CHUNK_HEIGHT; y++)
+                if(y > height)
                 {
-                    int index;
-                    posToIndex((vec3){x, y, z}, &index);
-
-                    if(y > height)
-                    {
-                        chunk->chunkData[index] = AIR_BLOCK;
-                    }
-                    else if(y == height)
-                    {
-                        chunk->chunkData[index] = GRASS_BLOCK;
-                    }
-                    else if(y < height && y > height - 3)
-                    {
-                        chunk->chunkData[index] = DIRT_BLOCK;
-                    }
-                    else
-                    {
-                        chunk->chunkData[index] = STONE_BLOCK;
-                    }
+                    chunk->chunkData[index] = AIR_BLOCK;
+                }
+                else if(y == height)
+                {
+                    chunk->chunkData[index] = GRASS_BLOCK;
+                }
+                else if(y < height && y > height - 3)
+                {
+                    chunk->chunkData[index] = SAND_BLOCK;
+                }
+                else
+                {
+                    chunk->chunkData[index] = STONE_BLOCK;
                 }
             }
         }
     }
-}
+};
 
-void generateChunkDrawData(int chunkX, int chunkZ)
+void generateChunkDrawData(Chunk* chunk, Chunk* westChunk, Chunk* eastChunk, Chunk* southChunk, Chunk* northChunk)
 {
-    uint64_t key;
-    vec2ToHashKey(chunkX, chunkZ, &key);
-
-    khint_t foundChunk = kh_get(chunk_map, chunkMap, key);
-    Chunk* chunk = kh_value(chunkMap, foundChunk);
-
-    vec2ToHashKey(chunkX - 1, chunkZ, &key);
-    foundChunk = kh_get(chunk_map, chunkMap, key);
-    Chunk* westChunk = kh_value(chunkMap, foundChunk);
-
-    vec2ToHashKey(chunkX + 1, chunkZ, &key);
-    foundChunk = kh_get(chunk_map, chunkMap, key);
-    Chunk* eastChunk = kh_value(chunkMap, foundChunk);
-
-    vec2ToHashKey(chunkX, chunkZ + 1, &key);
-    foundChunk = kh_get(chunk_map, chunkMap, key);
-    Chunk* southChunk = kh_value(chunkMap, foundChunk);
-
-    vec2ToHashKey(chunkX, chunkZ - 1, &key);
-    foundChunk = kh_get(chunk_map, chunkMap, key);
-    Chunk* northChunk = kh_value(chunkMap, foundChunk);
-
     chunk->drawData = NULL;
     for(int i = 0; i < CHUNK_VOLUME; i++)
     {
@@ -329,17 +258,17 @@ void generateChunkDrawData(int chunkX, int chunkZ)
 
     chunk->vertices = arrlen(chunk->drawData) / 6;
     chunk->generatedDrawData = true;
-}
+};
 
-void compileChunkDrawData(int chunkX, int chunkZ)
+void compileChunkDrawData(Chunk* chunk)
 {
-    uint64_t key;
-    vec2ToHashKey(chunkX, chunkZ, &key);
+    // uint64_t key;
+    // vec2ToHashKey(chunkX, chunkZ, &key);
+    //
+    // khint_t foundChunk = kh_get(chunk_map, chunkMap, key);
+    // Chunk* chunk = kh_value(chunkMap, foundChunk);
 
-    khint_t foundChunk = kh_get(chunk_map, chunkMap, key);
-    Chunk* chunk = kh_value(chunkMap, foundChunk);
 
-    glEnable(GL_DEPTH_TEST);
 
     glGenBuffers(1, &chunk->VBO);
     glGenVertexArrays(1, &chunk->VAO);
@@ -356,4 +285,4 @@ void compileChunkDrawData(int chunkX, int chunkZ)
     glEnableVertexAttribArray(1);
 
     arrfree(chunk->drawData);
-}
+};
