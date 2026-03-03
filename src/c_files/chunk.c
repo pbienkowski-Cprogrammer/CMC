@@ -9,29 +9,38 @@
 
 struct osn_context *osn_ctx;
 
-void addSide(Chunk* chunk, Sides side, float* blockPos, int index)
+//this function push clock face data to chunk.drawData, those are data to create VBO, VAO and just draw chunk
+void addBlockSide(Chunk* chunk, Sides side, float* blockPos, int index)
 {
     for(int i = 0; i < 6; i++)
     {
+        //on which stride from blockData we are
         int currentStride = (side * 6 + i) * BLOCK_DATA_STRIDE;
 
-        //vertex pos
+        //there we add those data with optionally some thing to them
+
+        //vertex pos with chunk offset
         arrpush(chunk->drawData, blockData[currentStride + 0] + chunk->pos[0] * CHUNK_SIZE + blockPos[0]);
         arrpush(chunk->drawData, blockData[currentStride + 1] + blockPos[1]);
         arrpush(chunk->drawData, blockData[currentStride + 2] + chunk->pos[1] * CHUNK_SIZE + blockPos[2]);
 
-        //normal
+        //normals
         arrpush(chunk->drawData, blockData[currentStride + 3]);
         arrpush(chunk->drawData, blockData[currentStride + 4]);
         arrpush(chunk->drawData, blockData[currentStride + 5]);
 
         //tex coords
+
         int blockIndex = chunk->chunkData[index] - 1;
         int textureIndex = blockSidesTextures[blockIndex][side];
 
+        //there we treat texturePos as pos on tile map and later we normalize it for shader program
         int texturePos = blockData[currentStride + 6] + texPosis[textureIndex][0];
         float normalizedTexturePos = (float)texturePos / (float)TEXTURES_IN_ATLAS_WIDTH;
 
+        //there we move edges of texture slighty to direction of the center,
+        //because if we dont, there will be weird pixel color, where they shouldnt be,
+        //its because we store textures in one atlas
         float textureCorrection = 0.0001f;
 
         if(blockData[currentStride + 6] > 0.0f)
@@ -39,24 +48,24 @@ void addSide(Chunk* chunk, Sides side, float* blockPos, int index)
             textureCorrection *= -1.0f;
         }
 
+        //we combine those two and that is final result
         arrpush(chunk->drawData, normalizedTexturePos + textureCorrection);
 
-        // texturePos = blockData[currentStride + 7] + texPosis[textureIndex][1];
-        // normalizedTexturePos = (float)texturePos / (float)TEXTURES_IN_ATLAS_HEIGHT;
-        //
-        // textureCorrection = 0.0001f;
-        //
-        // if(blockData[currentStride + 7] > 0.0f)
-        // {
-        //     textureCorrection *= -1.0f;
-        // }
-        //
-        // arrpush(chunk->drawData, normalizedTexturePos + textureCorrection);
+        //there everything is like above, but texture pos is different, because for opengl
+        //image starts at bottom left center and for us image starts at top left
+        texturePos = blockData[currentStride + 7] + TEXTURES_IN_ATLAS_HEIGHT - 1 - texPosis[textureIndex][1];
+        normalizedTexturePos = (float)texturePos / (float)TEXTURES_IN_ATLAS_HEIGHT;
 
-        float yTexCoord = (blockData[currentStride + 7] + ((TEXTURES_IN_ATLAS_HEIGHT - 1) - texPosis[blockSidesTextures[chunk->chunkData[index] - 1][side]][1])) / TEXTURES_IN_ATLAS_HEIGHT - (blockData[(side * 6 + i) * 9 + 7] == 0.0f ? -0.0001f : 0.0001f);
-        arrpush(chunk->drawData, yTexCoord);
+        textureCorrection = 0.0001f;
 
-        //face side index
+        if(blockData[currentStride + 7] > 0.0f)
+        {
+            textureCorrection *= -1.0f;
+        }
+
+        arrpush(chunk->drawData, normalizedTexturePos + textureCorrection);
+
+        //face side index, it might be useful
         arrpush(chunk->drawData, blockData[currentStride + 8]);
     }
 };
@@ -122,7 +131,7 @@ void generateChunkDrawData(Chunk* chunk, Chunk* westChunk, Chunk* eastChunk, Chu
 
                 if(westChunk->chunkData[tempIndex] == AIR_BLOCK)
                 {
-                    addSide(chunk, WEST_SIDE, blockPos, i);
+                    addBlockSide(chunk, WEST_SIDE, blockPos, i);
                 }
 
                 tempPos[0] = 0.0f;
@@ -134,7 +143,7 @@ void generateChunkDrawData(Chunk* chunk, Chunk* westChunk, Chunk* eastChunk, Chu
 
                 if(chunk->chunkData[tempIndex] == AIR_BLOCK)
                 {
-                    addSide(chunk, WEST_SIDE, blockPos, i);
+                    addBlockSide(chunk, WEST_SIDE, blockPos, i);
                 }
 
                 tempPos[0]++;
@@ -148,7 +157,7 @@ void generateChunkDrawData(Chunk* chunk, Chunk* westChunk, Chunk* eastChunk, Chu
 
                 if(eastChunk->chunkData[tempIndex] == AIR_BLOCK)
                 {
-                    addSide(chunk, EAST_SIDE, blockPos, i);
+                    addBlockSide(chunk, EAST_SIDE, blockPos, i);
                 }
 
                 tempPos[0] = CHUNK_SIZE - 1;
@@ -160,7 +169,7 @@ void generateChunkDrawData(Chunk* chunk, Chunk* westChunk, Chunk* eastChunk, Chu
 
                 if(chunk->chunkData[tempIndex] == AIR_BLOCK)
                 {
-                    addSide(chunk, EAST_SIDE, blockPos, i);
+                    addBlockSide(chunk, EAST_SIDE, blockPos, i);
                 }
 
                 tempPos[0]--;
@@ -174,7 +183,7 @@ void generateChunkDrawData(Chunk* chunk, Chunk* westChunk, Chunk* eastChunk, Chu
 
                 if(southChunk->chunkData[tempIndex] == AIR_BLOCK)
                 {
-                    addSide(chunk, SOUTH_SIDE, blockPos, i);
+                    addBlockSide(chunk, SOUTH_SIDE, blockPos, i);
                 }
 
                 tempPos[2] = CHUNK_SIZE - 1;
@@ -186,7 +195,7 @@ void generateChunkDrawData(Chunk* chunk, Chunk* westChunk, Chunk* eastChunk, Chu
 
                 if(chunk->chunkData[tempIndex] == AIR_BLOCK)
                 {
-                    addSide(chunk, SOUTH_SIDE, blockPos, i);
+                    addBlockSide(chunk, SOUTH_SIDE, blockPos, i);
                 }
 
                 tempPos[2]--;
@@ -200,7 +209,7 @@ void generateChunkDrawData(Chunk* chunk, Chunk* westChunk, Chunk* eastChunk, Chu
 
                 if(northChunk->chunkData[tempIndex] == AIR_BLOCK)
                 {
-                    addSide(chunk, NORTH_SIDE, blockPos, i);
+                    addBlockSide(chunk, NORTH_SIDE, blockPos, i);
                 }
 
                 tempPos[2] = 0.0f;
@@ -212,7 +221,7 @@ void generateChunkDrawData(Chunk* chunk, Chunk* westChunk, Chunk* eastChunk, Chu
 
                 if(chunk->chunkData[tempIndex] == AIR_BLOCK)
                 {
-                    addSide(chunk, NORTH_SIDE, blockPos, i);
+                    addBlockSide(chunk, NORTH_SIDE, blockPos, i);
                 }
 
                 tempPos[2]++;
@@ -221,7 +230,7 @@ void generateChunkDrawData(Chunk* chunk, Chunk* westChunk, Chunk* eastChunk, Chu
             //TOP
             if(tempPos[1] + 1 >= CHUNK_HEIGHT)
             {
-                addSide(chunk, TOP_SIDE, blockPos, i);
+                addBlockSide(chunk, TOP_SIDE, blockPos, i);
             }
             else
             {
@@ -230,7 +239,7 @@ void generateChunkDrawData(Chunk* chunk, Chunk* westChunk, Chunk* eastChunk, Chu
 
                 if(chunk->chunkData[tempIndex] == AIR_BLOCK)
                 {
-                    addSide(chunk, TOP_SIDE, blockPos, i);
+                    addBlockSide(chunk, TOP_SIDE, blockPos, i);
                 }
 
                 tempPos[1]--;
@@ -239,7 +248,7 @@ void generateChunkDrawData(Chunk* chunk, Chunk* westChunk, Chunk* eastChunk, Chu
             //BOTTOM
             if(tempPos[1] - 1 < 0)
             {
-                addSide(chunk, BOTTOM_SIDE, blockPos, i);
+                addBlockSide(chunk, BOTTOM_SIDE, blockPos, i);
             }
             else
             {
@@ -248,7 +257,7 @@ void generateChunkDrawData(Chunk* chunk, Chunk* westChunk, Chunk* eastChunk, Chu
 
                 if(chunk->chunkData[tempIndex] == AIR_BLOCK)
                 {
-                    addSide(chunk, BOTTOM_SIDE, blockPos, i);
+                    addBlockSide(chunk, BOTTOM_SIDE, blockPos, i);
                 }
 
                 tempPos[1]++;

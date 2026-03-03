@@ -12,10 +12,10 @@
 
 /*
  TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- make add side method more readable
  in generate chunk drwa data make methods for that chaos
- CHANGE to engineINIT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ CHANGE to voxelengineINIT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  also with other things like player camera etc.
+ make a chunk draw function
  realistic movement, i mean if i press w and a, i should be the same speeed as i would press w, not times sqrt(2)
  comment everything
 
