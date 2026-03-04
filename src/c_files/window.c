@@ -36,7 +36,7 @@ bool createWindow()
     window = glfwCreateWindow(windowWidth, windowHeight, WINDOW_TITLE, NULL, NULL);
     if(window == NULL)
     {
-        printf("Failed to create window\n");
+        printf("Failed to create window object\n");
         glfwTerminate();
         return false;
     }

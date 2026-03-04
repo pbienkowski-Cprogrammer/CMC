@@ -39,7 +39,7 @@ void addBlockSide(Chunk* chunk, Sides side, float* blockPos, int index)
         float normalizedTexturePos = (float)texturePos / (float)TEXTURES_IN_ATLAS_WIDTH;
 
         //there we move edges of texture slighty to direction of the center,
-        //because if we dont, there will be weird pixel color, where they shouldnt be,
+        //because if we dont, there will be neightbour texture pixel color, where they shouldnt be,
         //its because we store textures in one atlas
         float textureCorrection = 0.0001f;
 
@@ -105,132 +105,115 @@ void generateChunk(Chunk* chunk)
     }
 };
 
+void checkNegativeSideOfBlock(Chunk* currentChunk, Chunk* neighbourChunk, float* blockPos, int index, Sides side, int axe)
+{
+    //we make temporary version of variables
+    vec3 tempPos;
+    tempPos[0] = blockPos[0];
+    tempPos[1] = blockPos[1];
+    tempPos[2] = blockPos[2];
+
+    int tempIndex = index;
+
+    //at first we check if we will be checking inside or outside of chunk
+    if(tempPos[axe] - 1 < 0)
+    {
+        //there we get pos of touching block of neightbour chunk and if its the air block we add face to be drawn
+        tempPos[axe] = CHUNK_SIZE - 1;
+        posToIndex(tempPos, &tempIndex);
+
+        if(neighbourChunk->chunkData[tempIndex] == AIR_BLOCK)
+        {
+            addBlockSide(currentChunk, side, blockPos, index);
+        }
+
+        tempPos[axe] = 0.0f;
+    }
+    else
+    {
+        //inside the chunk we do the same as the outside
+        tempPos[axe]--;
+        posToIndex(tempPos, &tempIndex);
+
+        if(currentChunk->chunkData[tempIndex] == AIR_BLOCK)
+        {
+            addBlockSide(currentChunk, side, blockPos, index);
+        }
+
+        tempPos[axe]++;
+    }
+}
+
+void checkPositiveSideOfBlock(Chunk* currentChunk, Chunk* neighbourChunk, float* blockPos, int index, Sides side, int axe)
+{
+    //the we do the same as in the method above, but in other way
+    vec3 tempPos;
+    tempPos[0] = blockPos[0];
+    tempPos[1] = blockPos[1];
+    tempPos[2] = blockPos[2];
+
+    int tempIndex = index;
+
+    if(tempPos[axe] + 1 >= CHUNK_SIZE)
+    {
+        tempPos[axe] = 0.0f;
+        posToIndex(tempPos, &tempIndex);
+
+        if(neighbourChunk->chunkData[tempIndex] == AIR_BLOCK)
+        {
+            addBlockSide(currentChunk, side, blockPos, index);
+        }
+
+        tempPos[axe] = CHUNK_SIZE - 1;
+    }
+    else
+    {
+        tempPos[axe]++;
+        posToIndex(tempPos, &tempIndex);
+
+        if(currentChunk->chunkData[tempIndex] == AIR_BLOCK)
+        {
+            addBlockSide(currentChunk, side, blockPos, index);
+        }
+
+        tempPos[axe]--;
+    }
+}
+
 void generateChunkDrawData(Chunk* chunk, Chunk* westChunk, Chunk* eastChunk, Chunk* southChunk, Chunk* northChunk)
 {
     chunk->drawData = NULL;
-    for(int i = 0; i < CHUNK_VOLUME; i++)
+    for(int index = 0; index < CHUNK_VOLUME; index++)
     {
         vec3 blockPos;
-        indexToPos(i, blockPos);
+        indexToPos(index, blockPos);
 
-        if(chunk->chunkData[i] > 0)
+        if(chunk->chunkData[index] > 0)
         {
-            //this is a really monstrous code, but its the most optimized version of it
+            //WEST
+            checkNegativeSideOfBlock(chunk, westChunk, blockPos, index, WEST_SIDE, 0);
 
+            //SOUTH
+            checkPositiveSideOfBlock(chunk, southChunk, blockPos, index, SOUTH_SIDE, 2);
+
+            //EAST
+            checkPositiveSideOfBlock(chunk, eastChunk, blockPos, index, EAST_SIDE, 0);
+
+            //NORTH
+            checkNegativeSideOfBlock(chunk, northChunk, blockPos, index, NORTH_SIDE, 2);
+
+            //we make temporary version of variables
             vec3 tempPos;
             int tempIndex;
             tempPos[0] = blockPos[0];
             tempPos[1] = blockPos[1];
             tempPos[2] = blockPos[2];
 
-            //WEST
-            if(tempPos[0] - 1 < 0)
-            {
-                tempPos[0] = CHUNK_SIZE - 1;
-                posToIndex(tempPos, &tempIndex);
-
-                if(westChunk->chunkData[tempIndex] == AIR_BLOCK)
-                {
-                    addBlockSide(chunk, WEST_SIDE, blockPos, i);
-                }
-
-                tempPos[0] = 0.0f;
-            }
-            else
-            {
-                tempPos[0]--;
-                posToIndex(tempPos, &tempIndex);
-
-                if(chunk->chunkData[tempIndex] == AIR_BLOCK)
-                {
-                    addBlockSide(chunk, WEST_SIDE, blockPos, i);
-                }
-
-                tempPos[0]++;
-            }
-
-            //EAST
-            if(tempPos[0] + 1 >= CHUNK_SIZE)
-            {
-                tempPos[0] = 0.0f;
-                posToIndex(tempPos, &tempIndex);
-
-                if(eastChunk->chunkData[tempIndex] == AIR_BLOCK)
-                {
-                    addBlockSide(chunk, EAST_SIDE, blockPos, i);
-                }
-
-                tempPos[0] = CHUNK_SIZE - 1;
-            }
-            else
-            {
-                tempPos[0]++;
-                posToIndex(tempPos, &tempIndex);
-
-                if(chunk->chunkData[tempIndex] == AIR_BLOCK)
-                {
-                    addBlockSide(chunk, EAST_SIDE, blockPos, i);
-                }
-
-                tempPos[0]--;
-            }
-
-            //SOUTH
-            if(tempPos[2] + 1 >= CHUNK_SIZE)
-            {
-                tempPos[2] = 0.0f;
-                posToIndex(tempPos, &tempIndex);
-
-                if(southChunk->chunkData[tempIndex] == AIR_BLOCK)
-                {
-                    addBlockSide(chunk, SOUTH_SIDE, blockPos, i);
-                }
-
-                tempPos[2] = CHUNK_SIZE - 1;
-            }
-            else
-            {
-                tempPos[2]++;
-                posToIndex(tempPos, &tempIndex);
-
-                if(chunk->chunkData[tempIndex] == AIR_BLOCK)
-                {
-                    addBlockSide(chunk, SOUTH_SIDE, blockPos, i);
-                }
-
-                tempPos[2]--;
-            }
-
-            //NORTH
-            if(tempPos[2] - 1 < 0)
-            {
-                tempPos[2] = CHUNK_SIZE - 1;
-                posToIndex(tempPos, &tempIndex);
-
-                if(northChunk->chunkData[tempIndex] == AIR_BLOCK)
-                {
-                    addBlockSide(chunk, NORTH_SIDE, blockPos, i);
-                }
-
-                tempPos[2] = 0.0f;
-            }
-            else
-            {
-                tempPos[2]--;
-                posToIndex(tempPos, &tempIndex);
-
-                if(chunk->chunkData[tempIndex] == AIR_BLOCK)
-                {
-                    addBlockSide(chunk, NORTH_SIDE, blockPos, i);
-                }
-
-                tempPos[2]++;
-            }
-
             //TOP
+            //there everything is same like above, but we dont check up and down chunk because we dont have them
             if(tempPos[1] + 1 >= CHUNK_HEIGHT)
             {
-                addBlockSide(chunk, TOP_SIDE, blockPos, i);
+                addBlockSide(chunk, TOP_SIDE, blockPos, index);
             }
             else
             {
@@ -239,7 +222,7 @@ void generateChunkDrawData(Chunk* chunk, Chunk* westChunk, Chunk* eastChunk, Chu
 
                 if(chunk->chunkData[tempIndex] == AIR_BLOCK)
                 {
-                    addBlockSide(chunk, TOP_SIDE, blockPos, i);
+                    addBlockSide(chunk, TOP_SIDE, blockPos, index);
                 }
 
                 tempPos[1]--;
@@ -248,7 +231,7 @@ void generateChunkDrawData(Chunk* chunk, Chunk* westChunk, Chunk* eastChunk, Chu
             //BOTTOM
             if(tempPos[1] - 1 < 0)
             {
-                addBlockSide(chunk, BOTTOM_SIDE, blockPos, i);
+                addBlockSide(chunk, BOTTOM_SIDE, blockPos, index);
             }
             else
             {
@@ -257,7 +240,7 @@ void generateChunkDrawData(Chunk* chunk, Chunk* westChunk, Chunk* eastChunk, Chu
 
                 if(chunk->chunkData[tempIndex] == AIR_BLOCK)
                 {
-                    addBlockSide(chunk, BOTTOM_SIDE, blockPos, i);
+                    addBlockSide(chunk, BOTTOM_SIDE, blockPos, index);
                 }
 
                 tempPos[1]++;
@@ -265,20 +248,13 @@ void generateChunkDrawData(Chunk* chunk, Chunk* westChunk, Chunk* eastChunk, Chu
         }
     }
 
+    //and we pass number of vertices to chunk, for more optimized rendering, and we check chunk as draw data generated
     chunk->vertices = arrlen(chunk->drawData) / 6;
     chunk->generatedDrawData = true;
 };
 
 void compileChunkDrawData(Chunk* chunk)
 {
-    // uint64_t key;
-    // vec2ToHashKey(chunkX, chunkZ, &key);
-    //
-    // khint_t foundChunk = kh_get(chunk_map, chunkMap, key);
-    // Chunk* chunk = kh_value(chunkMap, foundChunk);
-
-
-
     glGenBuffers(1, &chunk->VBO);
     glGenVertexArrays(1, &chunk->VAO);
 

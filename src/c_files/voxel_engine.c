@@ -12,10 +12,12 @@
 
 /*
  TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- in generate chunk drwa data make methods for that chaos
  CHANGE to voxelengineINIT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  also with other things like player camera etc.
  make a chunk draw function
+ tweak with settings
+ change Sides to Side
+ put seed for open simplex noise in settings, and change file name to just noise instead of open simplex noise
  realistic movement, i mean if i press w and a, i should be the same speeed as i would press w, not times sqrt(2)
  comment everything
 
