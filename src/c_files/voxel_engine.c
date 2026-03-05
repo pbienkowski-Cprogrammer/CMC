@@ -12,12 +12,10 @@
 
 /*
  TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- CHANGE to voxelengineINIT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- also with other things like player camera etc.
- make a chunk draw function
- tweak with settings
+
  change Sides to Side
  put seed for open simplex noise in settings, and change file name to just noise instead of open simplex noise
+  tweak with settings
  realistic movement, i mean if i press w and a, i should be the same speeed as i would press w, not times sqrt(2)
  comment everything
 
@@ -35,12 +33,12 @@ GLuint texture_atlas;
 
 Player player;
 
-void engineUpdate()
+void voxelEngineUpdate()
 {
     playerUpdate(&player);
 };
 
-void engineDraw()
+void voxelEngineDraw()
 {
     mat4x4 trans, perspe;
     mat4x4_perspective(perspe, degToRad(player.camera.FOV), (float)windowWidth / (float)windowHeight, 0.1f, 1000.0f);
@@ -62,7 +60,7 @@ void engineDraw()
     chunkManagerDraw(player.camera.pos[0], player.camera.pos[2]);
 };
 
-bool initEngine()
+bool voxelEngineInit()
 {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -87,7 +85,7 @@ bool initEngine()
 
     glUniform1i(uniLoc(shaderProgram, "texture_atlas"), 0);
 
-    initPlayer(&player, (vec3){0.0f, 100.0f, 0.0f}, 90.0f, 0.0f, 90.0f);
+    playerInit(&player, (vec3){0.0f, 100.0f, 0.0f}, 90.0f, 0.0f, 90.0f);
     calculatePlayerData(&player);
 
     chunkManagerInit();
@@ -95,7 +93,7 @@ bool initEngine()
     return true;
 };
 
-bool engineExit()
+bool voxelEngineExit()
 {
     glDeleteProgram(shaderProgram);
     glDeleteTextures(1, &texture_atlas);
@@ -105,12 +103,12 @@ bool engineExit()
     return true;
 };
 
-void processEngineMouseInput(double xPos, double yPos)
+void processVoxelEngineMouseInput(double xPos, double yPos)
 {
     processPlayerMouseInput(&player, xPos, yPos);
 };
 
-void processEngineKeyboardInput(int key, int action)
+void processVoxelEngineKeyboardInput(int key, int action)
 {
     processPlayerKeyboardInput(&player, key, action);
 };

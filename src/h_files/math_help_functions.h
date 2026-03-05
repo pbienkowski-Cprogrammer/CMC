@@ -7,6 +7,7 @@
 extern vec3 absoluteUp;
 
 void print_vec3(float* target);
+void vec3_set(float* origin, float* target);
 void indexToPos(int index, float* dest);
 void posToIndex(float* pos, int* index);
 float degToRad(float deg);

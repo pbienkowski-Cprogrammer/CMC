@@ -63,7 +63,7 @@ void playerUpdate(Player* player)
     updatePos(player, player->SHIFT, absoluteUp, -PLAYER_SPEED);
 };
 
-bool initPlayer(Player* player, float* pos, float yaw, float pitch, float FOV)
+bool playerInit(Player* player, float* pos, float yaw, float pitch, float FOV)
 {
     player->camera.pos[0] = pos[0];
     player->camera.pos[1] = pos[1];

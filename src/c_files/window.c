@@ -26,7 +26,7 @@ void mouse_callback(GLFWwindow* window, double xPos, double yPos)
     processGameMouseInput(xPos, yPos);
 }
 
-bool createWindow()
+bool windowInit()
 {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OPENGL_VERSION_MAJOR);

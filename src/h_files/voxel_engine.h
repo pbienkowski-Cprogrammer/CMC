@@ -3,11 +3,11 @@
 
 #include <stdbool.h>
 
-void engineUpdate();
-void engineDraw();
-bool initEngine();
-bool engineExit();
-void processEngineMouseInput(double xPos, double yPos);
-void processEngineKeyboardInput(int key, int action);
+void voxelEngineUpdate();
+void voxelEngineDraw();
+bool voxelEngineInit();
+bool voxelEngineExit();
+void processVoxelEngineMouseInput(double xPos, double yPos);
+void processVoxelEngineKeyboardInput(int key, int action);
 
 #endif

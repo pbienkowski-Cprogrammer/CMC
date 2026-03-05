@@ -6,4 +6,4 @@ extern GLFWwindow* window;
 extern int windowWidth;
 extern int windowHeight;
 
-bool createWindow();
+bool windowInit();

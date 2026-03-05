@@ -9,6 +9,12 @@
 
 struct osn_context *osn_ctx;
 
+void chunkDraw(Chunk* chunk)
+{
+    glBindVertexArray(chunk->VAO);
+    glDrawArrays(GL_TRIANGLES, 0, chunk->vertices);
+}
+
 //this function push clock face data to chunk.drawData, those are data to create VBO, VAO and just draw chunk
 void addBlockSide(Chunk* chunk, Sides side, float* blockPos, int index)
 {
@@ -109,9 +115,7 @@ void checkNegativeSideOfBlock(Chunk* currentChunk, Chunk* neighbourChunk, float*
 {
     //we make temporary version of variables
     vec3 tempPos;
-    tempPos[0] = blockPos[0];
-    tempPos[1] = blockPos[1];
-    tempPos[2] = blockPos[2];
+    vec3_set(blockPos, tempPos);
 
     int tempIndex = index;
 
@@ -148,9 +152,7 @@ void checkPositiveSideOfBlock(Chunk* currentChunk, Chunk* neighbourChunk, float*
 {
     //the we do the same as in the method above, but in other way
     vec3 tempPos;
-    tempPos[0] = blockPos[0];
-    tempPos[1] = blockPos[1];
-    tempPos[2] = blockPos[2];
+    vec3_set(blockPos, tempPos);
 
     int tempIndex = index;
 

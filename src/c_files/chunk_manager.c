@@ -124,8 +124,7 @@ void chunkManagerDraw(float playerPosX, float playerPosZ)
                     compileChunkDrawData(chunk);
                 }
 
-                glBindVertexArray(chunk->VAO);
-                glDrawArrays(GL_TRIANGLES, 0, chunk->vertices);
+                chunkDraw(chunk);
             }
         }
     }

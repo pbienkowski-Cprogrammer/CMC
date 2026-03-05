@@ -4,13 +4,13 @@
 
 int main()
 {
-    if(!createWindow())
+    if(!windowInit())
     {
         printf("Failed to create window\n");
         return 1;
     }
 
-    if(!initGame())
+    if(!gameInit())
     {
         printf("Failed to init game\n");
         return 1;

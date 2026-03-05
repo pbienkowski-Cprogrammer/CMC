@@ -19,6 +19,7 @@ typedef struct Chunk
     unsigned int vertices;
 } Chunk;
 
+void chunkDraw(Chunk* chunk);
 void generateChunk(Chunk* chunk);
 void generateChunkDrawData(Chunk* chunk, Chunk* westChunk, Chunk* eastChunk, Chunk* southChunk, Chunk* northChunk);
 void compileChunkDrawData(Chunk* chunk);

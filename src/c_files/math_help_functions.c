@@ -12,6 +12,13 @@ void print_vec3(float* target)
     printf("%f %f %f\n", target[0], target[1], target[2]);
 };
 
+void vec3_set(float* origin, float* target)
+{
+    target[0] = origin[0];
+    target[1] = origin[1];
+    target[2] = origin[2];
+}
+
 void indexToPos(int index, float* dest)
 {
     if(index < 0 || index > CHUNK_VOLUME)

@@ -37,12 +37,12 @@ void update()
         glfwSetWindowShouldClose(window, true);
     }
 
-    engineUpdate();
+    voxelEngineUpdate();
 };
 
 void draw()
 {
-    engineDraw();
+    voxelEngineDraw();
 };
 
 int gameLogicLoop(void* arg)
@@ -97,7 +97,7 @@ int gameLogicLoop(void* arg)
     return 0;
 };
 
-bool initGame()
+bool gameInit()
 {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -107,7 +107,7 @@ bool initGame()
         return false;
     }
 
-    initEngine();
+    voxelEngineInit();
 
     return true;
 };
@@ -142,7 +142,7 @@ bool startGameLoop()
     gameRunning = false;
     mtx_unlock(&gameLoopMutex);
 
-    engineExit();
+    voxelEngineExit();
     thrd_join(gameThread, NULL);
     mtx_destroy(&gameLoopMutex);
 
@@ -153,7 +153,7 @@ bool startGameLoop()
 
 void processGameMouseInput(double xPos, double yPos)
 {
-    processEngineMouseInput(xPos, yPos);
+    processVoxelEngineMouseInput(xPos, yPos);
 };
 
 void processGameKeyboardInput(int key, int action)
@@ -163,5 +163,5 @@ void processGameKeyboardInput(int key, int action)
         escapePressed = true;
     }
 
-    processEngineKeyboardInput(key, action);
+    processVoxelEngineKeyboardInput(key, action);
 };
