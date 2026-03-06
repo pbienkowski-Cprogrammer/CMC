@@ -12,7 +12,7 @@ typedef enum
     NORTH_SIDE = 3,
     TOP_SIDE = 4,
     BOTTOM_SIDE = 5,
-} Sides;
+} Side;
 
 //all textures
 typedef enum
@@ -23,7 +23,7 @@ typedef enum
     STONE_TEXTURE = 3,
     GRASS_TOP_TEXTURE = 4,
     SAND_TEXTURE = 5
-} Textures;
+} Texture;
 
 //all blocks
 typedef enum
@@ -34,7 +34,7 @@ typedef enum
     STONE_BLOCK = 3,
     GRASS_BLOCK = 4,
     SAND_BLOCK = 5
-} Blocks;
+} Block;
 
 extern float blockData[BLOCK_SIDES * BLOCK_SIDE_DATA];
 

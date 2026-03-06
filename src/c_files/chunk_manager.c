@@ -3,7 +3,7 @@
 #include "settings.h"
 #include "math_help_functions.h"
 #include "chunk.h"
-#include <open-simplex-noise.h>
+#include <osn-noise.h>
 #include <khash.h>
 
 KHASH_MAP_INIT_INT64(chunk_map, Chunk*)
@@ -133,7 +133,7 @@ void chunkManagerDraw(float playerPosX, float playerPosZ)
 void chunkManagerInit()
 {
     chunkMap = kh_init(chunk_map);
-    open_simplex_noise(283458, &osn_ctx);
+    open_simplex_noise(WORLD_SEED, &osn_ctx);
 };
 
 void chunkManagerExit()

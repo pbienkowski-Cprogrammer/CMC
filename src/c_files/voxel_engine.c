@@ -12,10 +12,6 @@
 
 /*
  TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
- change Sides to Side
- put seed for open simplex noise in settings, and change file name to just noise instead of open simplex noise
-  tweak with settings
  realistic movement, i mean if i press w and a, i should be the same speeed as i would press w, not times sqrt(2)
  comment everything
 

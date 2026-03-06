@@ -3,7 +3,7 @@
 #include "settings.h"
 #include "game_data.h"
 #include "math_help_functions.h"
-#include <open-simplex-noise.h>
+#include <osn-noise.h>
 #include <linmath.h>
 #include <stb/stb_ds.h>
 
@@ -16,7 +16,7 @@ void chunkDraw(Chunk* chunk)
 }
 
 //this function push clock face data to chunk.drawData, those are data to create VBO, VAO and just draw chunk
-void addBlockSide(Chunk* chunk, Sides side, float* blockPos, int index)
+void addBlockSide(Chunk* chunk, Side side, float* blockPos, int index)
 {
     for(int i = 0; i < 6; i++)
     {
@@ -71,7 +71,7 @@ void addBlockSide(Chunk* chunk, Sides side, float* blockPos, int index)
 
         arrpush(chunk->drawData, normalizedTexturePos + textureCorrection);
 
-        //face side index, it might be useful
+        //it will be used for pseudo lighting hack
         arrpush(chunk->drawData, blockData[currentStride + 8]);
     }
 };
@@ -100,7 +100,7 @@ void generateChunk(Chunk* chunk)
                 }
                 else if(y < height && y > height - 3)
                 {
-                    chunk->chunkData[index] = SAND_BLOCK;
+                    chunk->chunkData[index] = DIRT_BLOCK;
                 }
                 else
                 {
@@ -111,7 +111,7 @@ void generateChunk(Chunk* chunk)
     }
 };
 
-void checkNegativeSideOfBlock(Chunk* currentChunk, Chunk* neighbourChunk, float* blockPos, int index, Sides side, int axe)
+void checkNegativeSideOfBlock(Chunk* currentChunk, Chunk* neighbourChunk, float* blockPos, int index, Side side, int axe)
 {
     //we make temporary version of variables
     vec3 tempPos;
@@ -148,7 +148,7 @@ void checkNegativeSideOfBlock(Chunk* currentChunk, Chunk* neighbourChunk, float*
     }
 }
 
-void checkPositiveSideOfBlock(Chunk* currentChunk, Chunk* neighbourChunk, float* blockPos, int index, Sides side, int axe)
+void checkPositiveSideOfBlock(Chunk* currentChunk, Chunk* neighbourChunk, float* blockPos, int index, Side side, int axe)
 {
     //the we do the same as in the method above, but in other way
     vec3 tempPos;
@@ -268,8 +268,14 @@ void compileChunkDrawData(Chunk* chunk)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, BLOCK_DATA_STRIDE * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, BLOCK_DATA_STRIDE * sizeof(float), (void*)(6 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, BLOCK_DATA_STRIDE * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, BLOCK_DATA_STRIDE * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, BLOCK_DATA_STRIDE * sizeof(float), (void*)(8 * sizeof(float)));
+    glEnableVertexAttribArray(3);
 
     arrfree(chunk->drawData);
 };
