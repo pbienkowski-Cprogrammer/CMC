@@ -9,21 +9,22 @@
 
 struct osn_context *osn_ctx;
 
+//function that draws chunk
 void chunkDraw(Chunk* chunk)
 {
     glBindVertexArray(chunk->VAO);
     glDrawArrays(GL_TRIANGLES, 0, chunk->vertices);
 }
 
-//this function push clock face data to chunk.drawData, those are data to create VBO, VAO and just draw chunk
+//this function push Block face data to chunk.drawData, those are data to create VBO, VAO and draw chunk
 void addBlockSide(Chunk* chunk, Side side, float* blockPos, int index)
 {
     for(int i = 0; i < 6; i++)
     {
-        //on which stride from blockData we are
+        //on which stride from blockData program is
         int currentStride = (side * 6 + i) * BLOCK_DATA_STRIDE;
 
-        //there we add those data with optionally some thing to them
+        //there program pushes those data and  optionally adds some thing to them
 
         //vertex pos with chunk offset
         arrpush(chunk->drawData, blockData[currentStride + 0] + chunk->pos[0] * CHUNK_SIZE + blockPos[0]);
@@ -40,12 +41,12 @@ void addBlockSide(Chunk* chunk, Side side, float* blockPos, int index)
         int blockIndex = chunk->chunkData[index] - 1;
         int textureIndex = blockSidesTextures[blockIndex][side];
 
-        //there we treat texturePos as pos on tile map and later we normalize it for shader program
+        //there program treats texturePos as pos on tile map and later we normalize it for shader program
         int texturePos = blockData[currentStride + 6] + texPosis[textureIndex][0];
         float normalizedTexturePos = (float)texturePos / (float)TEXTURES_IN_ATLAS_WIDTH;
 
-        //there we move edges of texture slighty to direction of the center,
-        //because if we dont, there will be neightbour texture pixel color, where they shouldnt be,
+        //there program moves edges of texture slighty to direction of the center,
+        //because if not, there will be on edges of block color of neightbour tile, while they shouldnt be,
         //its because we store textures in one atlas
         float textureCorrection = 0.0001f;
 
@@ -54,11 +55,11 @@ void addBlockSide(Chunk* chunk, Side side, float* blockPos, int index)
             textureCorrection *= -1.0f;
         }
 
-        //we combine those two and that is final result
+        //program combines those two and that is final result
         arrpush(chunk->drawData, normalizedTexturePos + textureCorrection);
 
         //there everything is like above, but texture pos is different, because for opengl
-        //image starts at bottom left center and for us image starts at top left
+        //image starts at bottom left center and for program image starts at top left
         texturePos = blockData[currentStride + 7] + TEXTURES_IN_ATLAS_HEIGHT - 1 - texPosis[textureIndex][1];
         normalizedTexturePos = (float)texturePos / (float)TEXTURES_IN_ATLAS_HEIGHT;
 
@@ -76,12 +77,14 @@ void addBlockSide(Chunk* chunk, Side side, float* blockPos, int index)
     }
 };
 
+//function that generates chunk
 void generateChunk(Chunk* chunk)
 {
     for(int x = 0; x < CHUNK_SIZE; x++)
     {
         for(int z = 0; z < CHUNK_SIZE; z++)
         {
+            //program calculates height of block pillar in chunk, and select blocks based on it
             float multiplyer = 0.01f;
             int height = CHUNK_HEIGHT * (open_simplex_noise2(osn_ctx, (x + chunk->pos[0] * CHUNK_SIZE) * multiplyer, (z + chunk->pos[1] * CHUNK_SIZE) * multiplyer) * 0.5f + 0.5f);
 
@@ -113,16 +116,17 @@ void generateChunk(Chunk* chunk)
 
 void checkNegativeSideOfBlock(Chunk* currentChunk, Chunk* neighbourChunk, float* blockPos, int index, Side side, int axe)
 {
-    //we make temporary version of variables
+    //program makes temporary version of variables
     vec3 tempPos;
     vec3_set(blockPos, tempPos);
 
     int tempIndex = index;
 
-    //at first we check if we will be checking inside or outside of chunk
+    //at first program checks if it will be checking face in direction inside or outside of chunk
     if(tempPos[axe] - 1 < 0)
     {
-        //there we get pos of touching block of neightbour chunk and if its the air block we add face to be drawn
+        //outside of the chunk,
+        //there program gets pos of touching block of neightbour chunk and if its the air block program adds face to be drawn
         tempPos[axe] = CHUNK_SIZE - 1;
         posToIndex(tempPos, &tempIndex);
 
@@ -135,7 +139,7 @@ void checkNegativeSideOfBlock(Chunk* currentChunk, Chunk* neighbourChunk, float*
     }
     else
     {
-        //inside the chunk we do the same as the outside
+        //inside the chunk program do the same as the outside
         tempPos[axe]--;
         posToIndex(tempPos, &tempIndex);
 
@@ -150,7 +154,7 @@ void checkNegativeSideOfBlock(Chunk* currentChunk, Chunk* neighbourChunk, float*
 
 void checkPositiveSideOfBlock(Chunk* currentChunk, Chunk* neighbourChunk, float* blockPos, int index, Side side, int axe)
 {
-    //the we do the same as in the method above, but in other way
+    //the program do the same as in the method above, but in opposite way
     vec3 tempPos;
     vec3_set(blockPos, tempPos);
 
@@ -212,7 +216,7 @@ void generateChunkDrawData(Chunk* chunk, Chunk* westChunk, Chunk* eastChunk, Chu
             tempPos[2] = blockPos[2];
 
             //TOP
-            //there everything is same like above, but we dont check up and down chunk because we dont have them
+            //there everything is same like above, but program dont check up and down chunk because they dont exist
             if(tempPos[1] + 1 >= CHUNK_HEIGHT)
             {
                 addBlockSide(chunk, TOP_SIDE, blockPos, index);
@@ -250,7 +254,7 @@ void generateChunkDrawData(Chunk* chunk, Chunk* westChunk, Chunk* eastChunk, Chu
         }
     }
 
-    //and we pass number of vertices to chunk, for more optimized rendering, and we check chunk as draw data generated
+    //and program pass number of vertices to chunk, for more optimized rendering, and program marks chunk as draw data generated
     chunk->vertices = arrlen(chunk->drawData) / 6;
     chunk->generatedDrawData = true;
 };
@@ -265,17 +269,22 @@ void compileChunkDrawData(Chunk* chunk)
     glBindBuffer(GL_ARRAY_BUFFER, chunk->VBO);
     glBufferData(GL_ARRAY_BUFFER, arrlen(chunk->drawData) * sizeof(float), chunk->drawData, GL_STATIC_DRAW);
 
+    //pos
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, BLOCK_DATA_STRIDE * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
+    //normal
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, BLOCK_DATA_STRIDE * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
+    //texture coordinates
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, BLOCK_DATA_STRIDE * sizeof(float), (void*)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
+    //side index
     glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, BLOCK_DATA_STRIDE * sizeof(float), (void*)(8 * sizeof(float)));
     glEnableVertexAttribArray(3);
 
+    //program releases draw data, because program dont need it
     arrfree(chunk->drawData);
 };

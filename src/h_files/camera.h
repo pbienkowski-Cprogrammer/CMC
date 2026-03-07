@@ -3,6 +3,7 @@
 
 #include <linmath.h>
 
+//I decided to put in camera struct only necesery stuff
 typedef struct Camera
 {
     vec3 pos;
@@ -11,6 +12,7 @@ typedef struct Camera
     float yaw;
 } Camera;
 
+//basic camera utility - functions for other things
 void cameraDir(Camera* camera, float* cameraDir);
 void cameraRight(float* cameraDir, float* cameraRight);
 void cameraUp(float* cameraDir, float* cameraRight, float* cameraUp);

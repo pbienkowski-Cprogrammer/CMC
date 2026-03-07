@@ -8,31 +8,39 @@
 #include "window.h"
 #include "voxel_engine.h"
 
+//time per frame and update in nanoseconds
 const long timePerUpdate = 1000000000 / UPS;
 const long timePerFrame = 1000000000 / FPS;
 
+//variable that shows if game loop is active or not
 bool gameRunning = true;
 
+//those 2 variables are current time beetwen start and end of frame and update
 long deltaU = 0;
 long deltaF = 0;
 
-long lastCheckTimeMilis = 0;
-
+//this is used to calculate difference in time passing
 long currentNanoTime = 0;
 long previousNanoTime = 0;
 
+//this is same like above, but it is used to print UPS and FPS
+long lastCheckTimeMilis = 0;
+
+//as you guessed those are used to count UPS and FPS
 long countUPS = 0;
 long countFPS = 0;
 
-bool isDraw = true;
+//this is because update function is in update thread and draw function in main thread
+bool isTimeToDraw = true;
 
-bool escapePressed = false;
+//if you set this variable to true, program will make cleanup and close
+bool gameStop = false;
 
 mtx_t gameLoopMutex;
 
 void update()
 {
-    if(escapePressed)
+    if(gameStop)
     {
         glfwSetWindowShouldClose(window, true);
     }
@@ -53,26 +61,20 @@ int gameLogicLoop(void* arg)
     while(true)
     {
         mtx_lock(&gameLoopMutex);
+        //when its time to stop program, program breaks out of game logic loop
         if(!gameRunning)
         {
             break;
         }
         mtx_unlock(&gameLoopMutex);
 
+        //program updates deltas with time difference
         currentNanoTime = glfwGetTime() * 1000000000;
         deltaU += currentNanoTime - previousNanoTime;
         deltaF += currentNanoTime - previousNanoTime;
         previousNanoTime = currentNanoTime;
 
-        if(deltaF >= timePerFrame)
-        {
-            deltaF -= timePerFrame;
-
-            mtx_lock(&gameLoopMutex);
-            isDraw = true;
-            mtx_unlock(&gameLoopMutex);
-        }
-
+        //if deltaU if larger or equal time for update, program updates and increases UPS
         if(deltaU >= timePerUpdate)
         {
             deltaU -= timePerUpdate;
@@ -85,6 +87,17 @@ int gameLogicLoop(void* arg)
             mtx_unlock(&gameLoopMutex);
         }
 
+        //same like above, but it sets isTimeToDraw to true, and in main thread draw function is called
+        if(deltaF >= timePerFrame)
+        {
+            deltaF -= timePerFrame;
+
+            mtx_lock(&gameLoopMutex);
+            isTimeToDraw = true;
+            mtx_unlock(&gameLoopMutex);
+        }
+
+        //each second it prints UPS and FPS
         if(glfwGetTime() * 1000 - lastCheckTimeMilis >= 1000)
         {
             printf("UPS : %ld | FPS : %ld\n", countUPS, countFPS);
@@ -101,6 +114,7 @@ bool gameInit()
 {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
+    //there program inits opengl and voxel engine
     if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         printf("Failed to load glad\n");
@@ -116,21 +130,26 @@ bool startGameLoop()
 {
     mtx_init(&gameLoopMutex, mtx_plain);
 
+    //start update thread
     thrd_t gameThread;
     thrd_create(&gameThread, gameLogicLoop, NULL);
 
+    //main/draw loop
     while(!glfwWindowShouldClose(window))
     {
         mtx_lock(&gameLoopMutex);
-        if(isDraw)
+        if(isTimeToDraw)
         {
             mtx_unlock(&gameLoopMutex);
 
+            //program unlocks variables for drawing, because its safe
             draw();
-
             glfwSwapBuffers(window);
+
             mtx_lock(&gameLoopMutex);
-            isDraw = false;
+
+            //program locks them again for updating
+            isTimeToDraw = false;
             countFPS++;
         }
         mtx_unlock(&gameLoopMutex);
@@ -138,10 +157,12 @@ bool startGameLoop()
         glfwPollEvents();
     }
 
+    //we stop program
     mtx_lock(&gameLoopMutex);
     gameRunning = false;
     mtx_unlock(&gameLoopMutex);
 
+    //exiting and destroying everything
     voxelEngineExit();
     thrd_join(gameThread, NULL);
     mtx_destroy(&gameLoopMutex);
@@ -158,9 +179,10 @@ void processGameMouseInput(double xPos, double yPos)
 
 void processGameKeyboardInput(int key, int action)
 {
+    //if user press escape ESCAPE, program will stop
     if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     {
-        escapePressed = true;
+        gameStop = true;
     }
 
     processVoxelEngineKeyboardInput(key, action);

@@ -12,6 +12,7 @@
 
 /*
  TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ camera bug
  realistic movement, i mean if i press w and a, i should be the same speeed as i would press w, not times sqrt(2)
  comment everything
 

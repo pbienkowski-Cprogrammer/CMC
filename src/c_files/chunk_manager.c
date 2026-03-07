@@ -6,11 +6,14 @@
 #include <osn-noise.h>
 #include <khash.h>
 
+//hash map for chunks
 KHASH_MAP_INIT_INT64(chunk_map, Chunk*)
 khash_t(chunk_map) *chunkMap;
 
+//this function calculates which chunks to draw and draws them
 void chunkManagerDraw(float playerPosX, float playerPosZ)
 {
+    //calculate player pos in chunks
     float currentChunkX = playerPosX / (float)CHUNK_SIZE;
     float currentChunkZ = playerPosZ / (float)CHUNK_SIZE;
 
@@ -19,6 +22,7 @@ void chunkManagerDraw(float playerPosX, float playerPosZ)
 
     if(DRAW_AREA_IN_CHUNKS % 2 != 0)
     {
+        //if draw area is odd, program just subtract 1 from it, and add to player pos in each direction
         startChunkX = (int)floor(currentChunkX) - (DRAW_AREA_IN_CHUNKS - 1) / 2;
         startChunkZ = (int)floor(currentChunkZ) - (DRAW_AREA_IN_CHUNKS - 1) / 2;
 
@@ -27,12 +31,14 @@ void chunkManagerDraw(float playerPosX, float playerPosZ)
     }
     else
     {
+        //else program first calculates square of chunks which for sure will be drawn
         startChunkX = (int)floor(currentChunkX) - (DRAW_AREA_IN_CHUNKS - 2) / 2;
         startChunkZ = (int)floor(currentChunkZ) - (DRAW_AREA_IN_CHUNKS - 2) / 2;
 
         endChunkX = (int)floor(currentChunkX) + (DRAW_AREA_IN_CHUNKS - 2) / 2;
         endChunkZ = (int)floor(currentChunkZ) + (DRAW_AREA_IN_CHUNKS - 2) / 2;
 
+        //and based on player pos in chunk, program add 1 to side that is closer to player
         float offsetInChunkX, offsetInChunkZ;
 
         if(currentChunkX >= 0)
@@ -65,6 +71,7 @@ void chunkManagerDraw(float playerPosX, float playerPosZ)
         }
     }
 
+    //firstly in larger square program generates chunks if they down exists, its because generateChunkDrawData() needs 4 surrounding chunks
     for(int chunkX = startChunkX - 1; chunkX <= endChunkX + 1; chunkX++)
     {
         for(int chunkZ = startChunkZ - 1; chunkZ <= endChunkZ + 1; chunkZ++)
@@ -77,6 +84,7 @@ void chunkManagerDraw(float playerPosX, float playerPosZ)
 
             if(ret)
             {
+                //if chunk doesnt exists we malloc it
                 Chunk* chunk = malloc(sizeof(Chunk));
                 chunk->pos[0] = chunkX;
                 chunk->pos[1] = chunkZ;
@@ -89,6 +97,8 @@ void chunkManagerDraw(float playerPosX, float playerPosZ)
         }
     }
 
+    //in smaller chunk program firstly gets all surrounding chunks, then if chunk hasnt generated draw data, program generates them and compile them
+    //and when everything is done, program draws chunk
     for(int chunkX = startChunkX; chunkX <= endChunkX; chunkX++)
     {
         for(int chunkZ = startChunkZ; chunkZ <= endChunkZ; chunkZ++)
@@ -130,6 +140,7 @@ void chunkManagerDraw(float playerPosX, float playerPosZ)
     }
 };
 
+//function inits hash map and osn noise contex
 void chunkManagerInit()
 {
     chunkMap = kh_init(chunk_map);
@@ -144,13 +155,18 @@ void chunkManagerExit()
         {
             Chunk* chunk = kh_value(chunkMap, i);
 
+            //free opengl stuff
             glDeleteBuffers(1, &chunk->VBO);
             glDeleteVertexArrays(1, &chunk->VAO);
 
+            //free chunk itself
             free(chunk);
+
+            //program dont free chunk draw data, because it was set free earlier
         }
     }
 
+    //destroy hash map itself
     kh_destroy(chunk_map, chunkMap);
 
     open_simplex_noise_free(osn_ctx);
