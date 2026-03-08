@@ -12,7 +12,9 @@
 
 /*
  TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- camera bug
+ remove help word from math help function and opengl help functions
+ commenting was stopped on player files
+ camera files need serious update as weel as draw function - draw function shouldnt calculate anything at all
  realistic movement, i mean if i press w and a, i should be the same speeed as i would press w, not times sqrt(2)
  comment everything
 

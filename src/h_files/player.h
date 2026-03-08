@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include "camera.h"
 
+//this is expanded version of camera class with all utilities
 typedef struct Player
 {
     Camera camera;

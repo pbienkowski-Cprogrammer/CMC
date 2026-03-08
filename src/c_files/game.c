@@ -60,6 +60,11 @@ int gameLogicLoop(void* arg)
 
     while(true)
     {
+        //it works like this:
+        //that loop calculates time difference, then add it to deltaU,
+        //and when deltaU is equal or larger than time per update, which is calculated based on UPS we set earlier,
+        //update function is called, UPS counter is increased by 1, and deltaU is reset
+
         mtx_lock(&gameLoopMutex);
         //when its time to stop program, program breaks out of game logic loop
         if(!gameRunning)
@@ -112,6 +117,7 @@ int gameLogicLoop(void* arg)
 
 bool gameInit()
 {
+    //this will be changed
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     //there program inits opengl and voxel engine
@@ -157,7 +163,7 @@ bool startGameLoop()
         glfwPollEvents();
     }
 
-    //we stop program
+    //program start exiting and cleanup
     mtx_lock(&gameLoopMutex);
     gameRunning = false;
     mtx_unlock(&gameLoopMutex);
@@ -179,7 +185,7 @@ void processGameMouseInput(double xPos, double yPos)
 
 void processGameKeyboardInput(int key, int action)
 {
-    //if user press escape ESCAPE, program will stop
+    //if user press escape button, program will stop
     if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     {
         gameStop = true;

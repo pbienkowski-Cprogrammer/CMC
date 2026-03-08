@@ -1,27 +1,28 @@
 #include "opengl_help_functions.h"
 
+#include <GL/gl.h>
 #include <glad.h>
 #include <stdbool.h>
 #include <stb/stb_image.h>
 
-bool readFile(const char* file_location, const char** file_destinity)
+bool readFile(const char* fileLocation, const char** fileData)
 {
-    FILE* file;
-    long file_size;
-    char* buffer;
-
-    file = fopen(file_location, "r");
+    //opens file in read only mode
+    FILE* file = fopen(fileLocation, "r");
     if(file == NULL)
     {
-        printf("Failed to open file %s\n", file_location);
+        printf("Failed to open file %s\n", fileLocation);
         return false;
     }
 
+    //fseek moves file pointer to end of file, and return current pos with ftell, that pos is file size
+    //and pointer go back to start of file, because program will read it
     fseek(file, 0, SEEK_END);
-    file_size = ftell(file);
+    long file_size = ftell(file);
     rewind(file);
 
-    buffer = (char*)malloc(sizeof(char) * (file_size + 1));
+    //program allocates memory acording to size of file plus 1 for end string char
+    char* buffer = (char*)malloc(sizeof(char) * (file_size + 1));
     if(buffer == NULL)
     {
         printf("memory allocation error\n");
@@ -29,21 +30,25 @@ bool readFile(const char* file_location, const char** file_destinity)
         return false;
     }
 
+    //program reads file and set last char as end of string
     fread(buffer, 1, file_size, file);
     buffer[file_size] = '\0';
 
+    //program close and returns file data
     fclose(file);
 
-    *file_destinity = buffer;
+    *fileData = buffer;
 
     return true;
 };
 
 bool createShader(GLuint* shader, const char* vertexShaderFileplace, const char* fragmentShaderFileplace)
 {
+    //this function opens shader file
     const char* vertexShaderSource;
     readFile(vertexShaderFileplace, &vertexShaderSource);
 
+    //than creates shaders and compile source file
     GLuint vertexShader;
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
@@ -59,6 +64,7 @@ bool createShader(GLuint* shader, const char* vertexShaderFileplace, const char*
         printf("VERTEX::SHADER::COMPILATION::ERROR%s\n", infoLog);
     }
 
+    //there this is same like like vertex shader
     const char* fragmentShaderSource;
     readFile(fragmentShaderFileplace, &fragmentShaderSource);
 
@@ -75,8 +81,10 @@ bool createShader(GLuint* shader, const char* vertexShaderFileplace, const char*
         printf("FRAGMENT::SHADER::COMPILATION::ERROR%s\n", infoLog);
     }
 
+    //after that function creates shader program
     *shader = glCreateProgram();
 
+    //shaders compiled above are linked in shader program
     glAttachShader(*shader, vertexShader);
     glAttachShader(*shader, fragmentShader);
     glLinkProgram(*shader);
@@ -88,6 +96,7 @@ bool createShader(GLuint* shader, const char* vertexShaderFileplace, const char*
         printf("SHADER::PROGRAM::LINK::FAILED::ERROR%s\n", infoLog);
     }
 
+    //after that, function deletes leftovers
     free((void*)vertexShaderSource);
     free((void*)fragmentShaderSource);
     glDeleteShader(vertexShader);
@@ -102,6 +111,7 @@ bool createTexture2D(GLuint* texture, const char* Fileplace)
 
     glBindTexture(GL_TEXTURE_2D, *texture);
 
+    //we set GL_NEAREST there because if not, in distance, there will be weird artefacts
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -112,6 +122,7 @@ bool createTexture2D(GLuint* texture, const char* Fileplace)
     int width, height, nrChannels;
     unsigned char* data = stbi_load(Fileplace, &width, &height, &nrChannels, 0);
 
+    //function automaticly detects file format of texture
     if(data)
     {
         GLenum format;
@@ -141,6 +152,7 @@ bool createTexture2D(GLuint* texture, const char* Fileplace)
         return false;
     }
 
+    //function removes leftovers and unbinds texture
     stbi_image_free(data);
 
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -148,6 +160,7 @@ bool createTexture2D(GLuint* texture, const char* Fileplace)
     return true;
 };
 
+//this function exists, because code looks better with it
 void activateTexture2D(GLuint texture, int activeTexture)
 {
     glActiveTexture(activeTexture);

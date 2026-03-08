@@ -1,5 +1,6 @@
 #include "game_data.h"
 
+//all data importang to draw single block
 float blockData[BLOCK_SIDES * BLOCK_SIDE_DATA] = {
     //WEST
     //position		 normals			texCoords	sideIndex
@@ -61,7 +62,7 @@ vec2 texPosis[TEXTURES_IN_ATLAS] = {
     { 2, 1 }, //SAND_TEXTURE
 };
 
-//what texture on what block side
+//what texture is on given block side, based on block id
 unsigned int blockSidesTextures[BLOCKS][6] = {
     { DIRT_TEXTURE, DIRT_TEXTURE, DIRT_TEXTURE, DIRT_TEXTURE, DIRT_TEXTURE, DIRT_TEXTURE }, //dirt_block
     { GRASS_SIDE_TEXTURE, GRASS_SIDE_TEXTURE, GRASS_SIDE_TEXTURE, GRASS_SIDE_TEXTURE, FLOWER_GRASS_TOP_TEXTURE, DIRT_TEXTURE }, //flower_grass_block

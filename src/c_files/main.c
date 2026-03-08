@@ -4,6 +4,7 @@
 
 int main()
 {
+    //main function, that starts every important piece of game
     if(!windowInit())
     {
         printf("Failed to create window\n");

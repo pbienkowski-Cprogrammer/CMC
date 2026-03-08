@@ -4,6 +4,7 @@
 #include <glad.h>
 #include <stdbool.h>
 
+//program use this function a lot, and that define makes code shorter and simpler
 #define uniLoc glGetUniformLocation
 
 bool readFile(const char* file_location, const char** file_destinity);

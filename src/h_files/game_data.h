@@ -4,6 +4,10 @@
 #include "settings.h"
 #include <linmath.h>
 
+//there is every data needed to run game, load everything.
+//generate everything
+
+//program gives id to each block side
 typedef enum
 {
     WEST_SIDE = 0,
@@ -14,7 +18,7 @@ typedef enum
     BOTTOM_SIDE = 5,
 } Side;
 
-//all textures
+//every texture with coresponding id
 typedef enum
 {
     FLOWER_GRASS_TOP_TEXTURE = 0,
@@ -25,7 +29,7 @@ typedef enum
     SAND_TEXTURE = 5
 } Texture;
 
-//all blocks
+//every block with coresponding id
 typedef enum
 {
     AIR_BLOCK = 0,
@@ -36,10 +40,9 @@ typedef enum
     SAND_BLOCK = 5
 } Block;
 
+//program declares data arrays
 extern float blockData[BLOCK_SIDES * BLOCK_SIDE_DATA];
-
 extern vec2 texPosis[TEXTURES_IN_ATLAS];
-
 extern unsigned int blockSidesTextures[BLOCKS][6];
 
 #endif
