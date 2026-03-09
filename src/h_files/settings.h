@@ -1,32 +1,40 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
-//window opengl stuff
+//window opengl settings
 #define START_WINDOW_WIDTH 800
 #define START_WINDOW_HEIGHT 800
 #define OPENGL_VERSION_MAJOR 4
 #define OPENGL_VERSION_MINOR 6
-#define WINDOW_TITLE "CMinecraft"
+#define WINDOW_TITLE "CVoxelCraft"
 #define UPS 200
 #define FPS 60
 
-//player stuff
+//player settings
 #define MOUSE_INPUT_SENSITIVITY 0.1f
 #define PLAYER_SPEED 0.1f
 
-//game stuff
+//chunk settings
 #define CHUNK_SIZE 16
 #define CHUNK_HEIGHT 128
 #define CHUNK_AREA (CHUNK_SIZE * CHUNK_SIZE)
 #define CHUNK_VOLUME (CHUNK_SIZE * CHUNK_HEIGHT * CHUNK_SIZE)
+
+//block settings
 #define BLOCK_DATA_STRIDE 9
 #define BLOCK_SIDE_DATA (6 * BLOCK_DATA_STRIDE)
 #define BLOCK_SIDES 6
 #define BLOCKS 5
+
+//texture settings
 #define TEXTURES_IN_ATLAS_WIDTH 3
 #define TEXTURES_IN_ATLAS_HEIGHT 2
 #define TEXTURES_IN_ATLAS (TEXTURES_IN_ATLAS_WIDTH * TEXTURES_IN_ATLAS_HEIGHT)
+
+//draw settings
 #define DRAW_AREA_IN_CHUNKS 11
+
+//world settings
 #define WORLD_SEED 283458
 
 #endif

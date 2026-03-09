@@ -7,7 +7,6 @@ layout (location = 3) in float aSideIndex;
 out vec2 texCoords;
 out float sideIndex;
 
-uniform mat4 trans;
 uniform mat4 view;
 uniform mat4 perspe;
 
