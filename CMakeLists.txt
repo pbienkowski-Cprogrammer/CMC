@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(Minecraft)
+project(CVoxelEngine)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -19,5 +19,5 @@ add_library(glad STATIC src/c_files/glad.c)
 file(GLOB_RECURSE C_FILES src/c_files/*.c)
 file(GLOB_RECURSE H_FILES src/h_files/*.h)
 
-add_executable(Minecraft ${C_FILES})
-target_link_libraries(Minecraft ${OPENGL_LIBRARIES} glad glfw m)
+add_executable(CVoxelEngine ${C_FILES})
+target_link_libraries(CVoxelEngine ${OPENGL_LIBRARIES} glad glfw m)
