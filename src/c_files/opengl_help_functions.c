@@ -21,7 +21,7 @@ bool readFile(const char* fileLocation, const char** fileData)
     long file_size = ftell(file);
     rewind(file);
 
-    //program allocates memory according to size of file plus 1 for end string char
+    //program allocates memory acording to size of file plus 1 for end string char
     char* buffer = (char*)malloc(sizeof(char) * (file_size + 1));
     if(buffer == NULL)
     {

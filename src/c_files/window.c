@@ -4,13 +4,11 @@
 #include "settings.h"
 #include "game.h"
 
-//definitions of window variables
 GLFWwindow* window = NULL;
 
 int windowWidth = START_WINDOW_WIDTH;
 int windowHeight = START_WINDOW_HEIGHT;
 
-//every time use change window size, window size is updated
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
@@ -30,7 +28,6 @@ void mouse_callback(GLFWwindow* window, double xPos, double yPos)
 
 bool windowInit()
 {
-    //everything here is from settings
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OPENGL_VERSION_MAJOR);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OPENGL_VERSION_MINOR);

@@ -6,9 +6,10 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(OpenGL_GL_PREFERENCE "GLVND")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+#set(CMAKE_BUILD_TYPE Debug)
 
 find_package(OpenGL REQUIRED)
-add_subdirectory(include/glfw-3.4)
+find_package(glfw3 REQUIRED)
 
 include_directories(include)
 include_directories(src/h_files)

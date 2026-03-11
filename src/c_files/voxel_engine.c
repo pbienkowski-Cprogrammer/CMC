@@ -12,8 +12,11 @@
 
 /*
  TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ remove help word from math help function and opengl help functions
+ commenting was stopped on player files
  camera files need serious update as weel as draw function - draw function shouldnt calculate anything at all
  realistic movement, i mean if i press w and a, i should be the same speeed as i would press w, not times sqrt(2)
+ comment everything
 
 
 
@@ -24,7 +27,6 @@
 
  */
 
-//variables important to run engine
 GLuint shaderProgram;
 GLuint texture_atlas;
 
@@ -37,8 +39,7 @@ void voxelEngineUpdate()
 
 void voxelEngineDraw()
 {
-    //all draw matrices, thre isnt trans matrix, because program dont use it
-    mat4x4 perspe;
+    mat4x4 trans, perspe;
     mat4x4_perspective(perspe, degToRad(player.camera.FOV), (float)windowWidth / (float)windowHeight, 0.1f, 1000.0f);
 
     calculatePlayerData(&player);
@@ -53,19 +54,18 @@ void voxelEngineDraw()
 
     glUniformMatrix4fv(uniLoc(shaderProgram, "view"), 1, GL_FALSE, view[0]);
     glUniformMatrix4fv(uniLoc(shaderProgram, "perspe"), 1, GL_FALSE, perspe[0]);
+    glUniformMatrix4fv(uniLoc(shaderProgram, "trans"), 1, GL_FALSE, trans[0]);
 
     chunkManagerDraw(player.camera.pos[0], player.camera.pos[2]);
 };
 
 bool voxelEngineInit()
 {
-    //open handles not drawing faces player dont see
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CW);
 
-    //safety checks on creating important pieces
     if(!createShader(&shaderProgram, "src/shader_files/vert.glsl", "src/shader_files/frag.glsl"))
     {
         printf("failed to create shader\n");
